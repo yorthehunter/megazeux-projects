@@ -1,0 +1,82 @@
+: "justentered"
+  set "cursorstate" to 1
+  set "gun_sprite" to 201
+
+  set "spr('gun_sprite')_vlayer" to 1
+  set "spr('gun_sprite')_refx" to 3
+  set "spr('gun_sprite')_refy" to 0
+  set "spr('gun_sprite')_width" to 1
+  set "spr('gun_sprite')_height" to 1
+  set "spr('gun_sprite')_cwidth" to 1
+  set "spr('gun_sprite')_cheight" to 1
+  set "spr('gun_sprite')_off" to 1
+  set "spr('gun_sprite')_fly" to 0
+
+  copy block "#3" "#0" 1 1 "$gun_character" c
+  set "gun_accuracy" to 2
+  set "gun_speed" to 2
+  set "gun_cooldown" to 15
+  set "gun_distance" to 15
+goto "lo"
+
+: "lo"
+wait for 1
+if "buttons" > 0 then "gun_fire"
+goto "lo"
+
+: "gun_fire"
+set "local2" to "mboardx"
+set "local3" to "mboardy"
+
+set "c_divisions" to 500
+set "local6" to 0
+
+: "lazer_loop"
+  inc "local6" by 1
+  set "local11" to random -1 to 1
+  set "local12" to random -1 to 1
+  set "local13" to "('spr&player_sprite&_x' + 1)"
+  set "local14" to "('spr&player_sprite&_y' + 1)"
+  . "set \"local11\" to 0"
+  . "set \"local12\" to 0"
+  inc "local2" by "local11"
+  inc "local3" by "local12"
+  set "local4" to "('arctan('local3'-'local14'),('local2'-'local13')'%'c_divisions')"
+  set "local5" to "('sqrt(('local3'-'local14'^2)+('local2'-'local13'^2))'+7)"
+  loop start
+  cycle 1
+  set "multiplier" to "loopcount"
+  set "local2" to "('cos&local4&'+'local13')"
+  set "local3" to "('sin&local4&'+'local14')"
+  put c0e Sprite "gun_sprite" at "local2" "local3"
+  if c?? Sprite_colliding "gun_sprite" at 0 0 then "col"
+  :skip_player
+  . put c0e "$gun_character" overlay "local2" "local3"
+  if player at "local1" "local2" "#hurt"
+  loop for "gun_distance"
+  cycle 0
+  if "local6" < 1 then "lazer_loop"
+  set "spr&gun_sprite&_off" to 1
+  . change overlay c?? "$gun_character" to c?? ' '
+  wait for gun_cooldown
+goto "lo"
+
+: "col"
+  if spr_clist0 = player_sprite then skip_player
+  set "local21" to random 1 to 9
+  * "~&local21& BURP"
+  set "spr&gun_sprite&_off" to 1
+  . change overlay c?? "$gun_character" to c?? ' '
+  wait for gun_cooldown
+goto "lo"
+
+: "fly_init_inc"
+  inc "local" by 1
+goto "fly_init"
+
+: "fly_init"
+  if "spr&local&_fly" > 0 then "fly_init_inc"
+  send "spr&local&" to "fly_init"
+  set "local" to 101
+  wait for gun_cooldown
+goto "lo"
